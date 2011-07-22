@@ -43,7 +43,7 @@ screwM4Tail = color (opaque red)$ cylinder (screwType/2) screwLength
 
 screwsM4= unions$  map (\x-> rotateZ (x*2*pi/numberScrews)$move3D (10,0,0) screwM4) [1.0,2..numberScrews] 
 
-cilindro = projectZ 10 $( circle 10) 
+cilindro = projectZ 10 $difference ( circle 10) (circle 5)
 wheel = difference cyl1 (unions [roletes,ring,shaft] ) 
 
 montagem= unions [ move3D (0,0,-20) $move3D (0,0,-1*shaftLength) shaft 

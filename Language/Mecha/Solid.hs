@@ -32,6 +32,9 @@ data Solid
 
 data Plane 
   = Primitive2D [Transform] (AlphaColour Double ) Primitive2D
+  | Union2D Plane Plane
+  | Intersection2D Plane Plane
+  | Difference2D  Plane Plane
     
   deriving Eq
 
@@ -71,10 +74,19 @@ transform t a = case a of
 transform2D :: Transform -> Plane -> Plane
 transform2D t a = case a of
   Primitive2D  a b c   -> Primitive2D (a ++ [t]) b c
+  Union2D        a b     -> Union2D         (transform2D t a) (transform2D t b)
+  Intersection2D a b     -> Intersection2D  (transform2D t a) (transform2D t b)
+  Difference2D   a b     -> Difference2D    (transform2D t a) (transform2D t b)
+
+
 
 projection :: Projection-> Plane -> Solid
 projection p a = case a of
   Primitive2D    a b c   -> Extruded []  b  p  (Primitive2D a b c) 
+  Union2D        a b     -> Union         (projection p a) (projection p b)
+  Intersection2D a b     -> Intersection  (projection p a) (projection p b)
+  Difference2D   a b     -> Difference    (projection p a) (projection p b)
+
 
 instance Projectable Plane Solid where
   projectZ a = projection $ Extrude a
@@ -94,10 +106,20 @@ instance Moveable Plane where
 instance Scaleable Solid where
   scale a   = transform $ Scale a
 
+instance Scaleable Plane where
+  scale a   = transform2D $ Scale a
+
+
 instance Setable Solid where
   union        = Union
   intersection = Intersection
   difference   = Difference
+
+instance Setable Plane where
+  union        = Union2D
+  intersection = Intersection2D
+  difference   = Difference2D
+
 
 instance Colorable Solid where
   color c a = case a of
@@ -110,6 +132,10 @@ instance Colorable Solid where
 instance Colorable Plane where
   color c a = case a of
     Primitive2D    a _ b   -> Primitive2D a c  b
+    Union2D        a b     -> Union2D         (color c a) (color c b)
+    Intersection2D a b     -> Intersection2D  (color c a) (color c b)
+    Difference2D   a b     -> Difference2D    (color c a) (color c b)
+
 
 primitive :: Primitive -> Solid
 primitive = Primitive [] (opaque grey)
