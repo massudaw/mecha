@@ -32,6 +32,7 @@ data Solid
 
 data Plane 
   = Primitive2D [Transform] (AlphaColour Double ) Primitive2D
+  | Section [Transform] (AlphaColour Double ) Projection Solid
   | Union2D Plane Plane
   | Intersection2D Plane Plane
   | Difference2D  Plane Plane
@@ -41,6 +42,7 @@ data Plane
 data Primitive2D
   = Circle Double
   | Rectangle Double Double
+  | Polygon [Vector] [[Vector]]
   deriving Eq
 
 data Primitive
@@ -60,6 +62,7 @@ data Transform
 
 data Projection
   = Extrude Double
+  | Cut Bool 
   deriving Eq
 
 
@@ -83,13 +86,24 @@ transform2D t a = case a of
 projection :: Projection-> Plane -> Solid
 projection p a = case a of
   Primitive2D    a b c   -> Extruded []  b  p  (Primitive2D a b c) 
+  Section 	 a b c d -> Extruded [] b  p  (Section a b c d)
   Union2D        a b     -> Union         (projection p a) (projection p b)
   Intersection2D a b     -> Intersection  (projection p a) (projection p b)
   Difference2D   a b     -> Difference    (projection p a) (projection p b)
 
+cut :: Projection -> Solid -> Plane 
+cut p a = case a of
+  Primitive    a b c   -> Section []  b p  (Primitive a b c) 
+  Extruded     a b c d -> Section []  b p (Extruded a b c d) 
+  Union        a b     -> Union2D        (cut p a) (cut p b)
+  Intersection a b     -> Intersection2D  (cut p a) (cut p b)
+  Difference   a b     -> Difference2D    (cut p a) (cut p b)
+
+
 
 instance Projectable Plane Solid where
   projectZ a = projection $ Extrude a
+  section a = cut $ Cut a
 
 instance Moveable Solid where
   move a    = transform $ Move a

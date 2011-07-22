@@ -76,7 +76,12 @@ openSCAD a = unlines
       projection :: Projection -> String 
       projection a = case a of
 	Extrude length-> printf "linear_extrude (height=%f,center= true, convexity=10,twist = -fanrot)" length	
+        Cut bool -> printf$  "projection (cut = "++show bool++ " )" 
       plane a = case a of
+        Union2D        a b   -> printf "union()        {\n%s%s}\n" (indent $ plane a) (indent $ plane b)
+        Intersection2D a b   -> printf "intersection() {\n%s%s}\n" (indent $ plane a) (indent $ plane b)
+        Difference2D   a b   -> printf "difference()   {\n%s%s}\n" (indent $ plane a) (indent $ plane b)
+        Section tr co pr pl -> ( color $ colorToVector co ) $ (transform $ reverse tr)++ (projection pr) ++( solid pl)
         Primitive2D t alphaColor p -> (color $ colorToVector alphaColor)$(( transform $ reverse t) ++ primitive2D p)
       transform :: [Transform] -> String
       color ( r, g ,b, a) =printf "color([%f, %f, %f, %f]) %s\n" r g b a 	

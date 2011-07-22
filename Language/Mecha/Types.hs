@@ -46,6 +46,7 @@ class Scaleable a where
 
 class Projectable a b  where
   projectZ :: Double -> a -> b
+  section :: Bool -> b -> a
 
 
 scaleAll :: Scaleable a => Double -> a -> a
