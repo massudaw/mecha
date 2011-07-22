@@ -77,6 +77,7 @@ openSCAD a = unlines
       projection a = case a of
 	Extrude length-> printf "linear_extrude (height=%f,center= true, convexity=10,twist = -fanrot)" length	
         Cut bool -> printf$  "projection (cut = "++show bool++ " )" 
+        RotateExtrude -> printf "rotate_extrude ($fn=100)"
       plane a = case a of
         Union2D        a b   -> printf "union()        {\n%s%s}\n" (indent $ plane a) (indent $ plane b)
         Intersection2D a b   -> printf "intersection() {\n%s%s}\n" (indent $ plane a) (indent $ plane b)

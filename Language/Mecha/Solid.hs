@@ -16,6 +16,7 @@ module Language.Mecha.Solid
   , tube
   , radial
   , torus
+  , newTorus
   ) where
 
 import Language.Mecha.Types
@@ -62,6 +63,7 @@ data Transform
 
 data Projection
   = Extrude Double
+  | RotateExtrude
   | Cut Bool 
   deriving Eq
 
@@ -103,6 +105,7 @@ cut p a = case a of
 
 instance Projectable Plane Solid where
   projectZ a = projection $ Extrude a
+  rotateExtrude = projection $ RotateExtrude 
   section a = cut $ Cut a
 
 instance Moveable Solid where
@@ -198,4 +201,8 @@ radial f n = unions [ rotateZ a $ f a | i <- [0 .. n - 1], let a = 2 * pi * from
 -- | A torus centered at the origin, aligned on the z-axis, with the major and minor diameters.
 torus :: Double -> Double -> Solid
 torus d1 d2 = primitive $ Torus d1 d2
+
+newTorus :: Double -> Double -> Solid
+newTorus d1 d2 = rotateExtrude $ move3D (d1,0,0) $ circle d2
+
 

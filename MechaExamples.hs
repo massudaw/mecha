@@ -28,7 +28,7 @@ screwHole = move3D (10,0,0) $ screwM4Tail
 
 roletes = unions $ map (\x-> rotateZ (x*2*pi/numberSmallWheel) rolete) [1.0,2..numberSmallWheel] ++  map (\x-> rotateZ (x*2*pi/numberScrews) screwHole) [1.0,2..numberScrews] 
  
-ring = color (opaque blue)$ torus 50 1.5 
+ring = color (opaque blue)$ newTorus 25 1.5 
 
 screwM4 = unions [ screwM4Head, screwM4Tail]
 
@@ -43,25 +43,24 @@ screwM4Tail = color (opaque red)$ cylinder (screwType/2) screwLength
 
 screwsM4= unions$  map (\x-> rotateZ (x*2*pi/numberScrews)$move3D (10,0,0) screwM4) [1.0,2..numberScrews] 
 
-cilindro = move3D (0,0,30)$projectZ 10 $difference ( circle 10) $color (green `withOpacity` 0.5) (circle 5)
 wheel = difference cyl1 (unions [roletes,ring,shaft] ) 
 
 secao =  section True $ shaft ::Plane
-cil = projectZ 10 secao
+cil = projectZ 10 secao :: Solid
 
 
 montagem= unions [ move3D (0,0,-20) $move3D (0,0,-1*shaftLength) shaft 
 		 , move3D (0,0,-5) ring 
 		 , move3D (0,0,0) wheel 
 		 , move3D (0,0,-25) screwsM4
-		 , cilindro
+		 , move3D (30,30,0) cil
 		 , move3D (0,0,-10)$ rotateX pi wheel]
 		 
 
 
 main :: IO ()
 main = do
-  writeFile "csg.scad" $ openSCAD  $cil 
+  writeFile "csg.scad" $ openSCAD  $ montagem
   putStrLn ""
   putStrLn "Writing file: csg.scad"
   putStrLn ""
