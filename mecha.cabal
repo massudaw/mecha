@@ -24,6 +24,8 @@ library
 
     build-depends:
         base       >= 4       && < 5
+       ,colour     >= 2.3.1 
+       ,vector 	   >=0.7.1
 
     exposed-modules:
         Language.Mecha

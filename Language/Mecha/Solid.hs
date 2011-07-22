@@ -1,11 +1,16 @@
+{-# LANGUAGE  MultiParamTypeClasses #-}
 module Language.Mecha.Solid
   ( Solid     (..)
+  , Plane     (..)
   , Primitive (..)
+  , Primitive2D (..)
   , Transform (..)
+  , Projection (..)
   , sphere
   , cone
   , box
   , cube
+  , circle
   , cylinder
   , cylinder'
   , tube
@@ -14,12 +19,25 @@ module Language.Mecha.Solid
   ) where
 
 import Language.Mecha.Types
+import Data.Colour
+import Data.Colour.Names (grey)
 
 data Solid
-  = Primitive [Transform] Color Primitive
+  = Primitive [Transform] (AlphaColour Double ) Primitive
+  | Extruded [Transform] (AlphaColour Double)  Projection  Plane
   | Union        Solid Solid
   | Intersection Solid Solid
   | Difference   Solid Solid
+  deriving Eq
+
+data Plane 
+  = Primitive2D [Transform] (AlphaColour Double ) Primitive2D
+    
+  deriving Eq
+
+data Primitive2D
+  = Circle Double
+  | Rectangle Double Double
   deriving Eq
 
 data Primitive
@@ -37,18 +55,41 @@ data Transform
   | RotateZ Double
   deriving Eq
 
-transform :: Transform -> Solid -> Solid
+data Projection
+  = Extrude Double
+  deriving Eq
+
+
+transform :: Transform -> Solid -> Solid 
 transform t a = case a of
   Primitive    a b c   -> Primitive (a ++ [t]) b c
+  Extruded     a b c d -> Extruded (a++[t]) b c d 
   Union        a b     -> Union         (transform t a) (transform t b)
   Intersection a b     -> Intersection  (transform t a) (transform t b)
   Difference   a b     -> Difference    (transform t a) (transform t b)
+
+transform2D :: Transform -> Plane -> Plane
+transform2D t a = case a of
+  Primitive2D  a b c   -> Primitive2D (a ++ [t]) b c
+
+projection :: Projection-> Plane -> Solid
+projection p a = case a of
+  Primitive2D    a b c   -> Extruded []  b  p  (Primitive2D a b c) 
+
+instance Projectable Plane Solid where
+  projectZ a = projection $ Extrude a
 
 instance Moveable Solid where
   move a    = transform $ Move a
   rotateX a = transform $ RotateX a
   rotateY a = transform $ RotateY a
   rotateZ a = transform $ RotateZ a
+
+instance Moveable Plane where
+  move a    = transform2D $ Move a
+  rotateX a = transform2D $ RotateX a
+  rotateY a = transform2D $ RotateY a
+  rotateZ a = transform2D $ RotateZ a
 
 instance Scaleable Solid where
   scale a   = transform $ Scale a
@@ -61,16 +102,28 @@ instance Setable Solid where
 instance Colorable Solid where
   color c a = case a of
     Primitive    a _ b   -> Primitive a c b
+    Extruded     a _ b d -> Extruded  a c b d
     Union        a b     -> Union         (color c a) (color c b)
     Intersection a b     -> Intersection  (color c a) (color c b)
     Difference   a b     -> Difference    (color c a) (color c b)
 
+instance Colorable Plane where
+  color c a = case a of
+    Primitive2D    a _ b   -> Primitive2D a c  b
+
 primitive :: Primitive -> Solid
-primitive = Primitive [] (0.5, 0.5, 0.5, 1)
+primitive = Primitive [] (opaque grey)
+
+primitive2D :: Primitive2D -> Plane 
+primitive2D = Primitive2D [] (opaque grey)
+
 
 -- | A sphere with diameter, centered at origin.
 sphere :: Double -> Solid
 sphere = primitive . Sphere
+
+circle :: Double -> Plane 
+circle = primitive2D . Circle
 
 -- | A cube with edge length, centered at origin.
 cube :: Double -> Solid

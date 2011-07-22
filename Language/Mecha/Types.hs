@@ -1,23 +1,26 @@
+{-# LANGUAGE  MultiParamTypeClasses #-}
 module Language.Mecha.Types
-  ( Vector, Vertex, Normal, Color
+  ( Vector, Vertex, Normal
   , Moveable  (..)
   , Scaleable (..)
   , Colorable (..)
   , Setable   (..)
+  , Projectable (..)
   , moveX
   , moveY
   , moveZ
+  , move3D
   , scaleAll
   , scaleX
   , scaleY
   , scaleZ
   , unions
   ) where
-
-type Vector = (Double, Double, Double)
+import Data.Colour
+import qualified Data.Vector as V
+type Vector = V.Vector Double
 type Vertex = Vector
 type Normal = Vector
-type Color  = (Double, Double, Double, Double)
 
 class Moveable a where
   move    :: Vector -> a -> a
@@ -25,32 +28,40 @@ class Moveable a where
   rotateY :: Double -> a -> a
   rotateZ :: Double -> a -> a
 
+move3D :: Moveable a => (Double,Double,Double) -> a -> a
+move3D (x,y,z) = move $ V.fromList [x,y,z]
+
 moveX :: Moveable a => Double -> a -> a
-moveX a = move (a, 0, 0)
+moveX a = move$ V.fromList [a,0,0] 
 
 moveY :: Moveable a => Double -> a -> a
-moveY a = move (0, a, 0)
+moveY a = move$ V.fromList [0,a,0] 
+
 
 moveZ :: Moveable a => Double -> a -> a
-moveZ a = move (0, 0, a)
+moveZ a = move$ V.fromList [0,0,a] 
 
 class Scaleable a where
   scale :: Vector -> a -> a
 
+class Projectable a b  where
+  projectZ :: Double -> a -> b
+
+
 scaleAll :: Scaleable a => Double -> a -> a
-scaleAll a = scale (a, a, a)
+scaleAll a = scale $ V.fromList [a,a,a] 
 
 scaleX :: Scaleable a => Double -> a -> a
-scaleX a = scale (a, 1, 1)
+scaleX a = scale $ V.fromList [a,0,0] 
 
 scaleY :: Scaleable a => Double -> a -> a
-scaleY a = scale (1, a, 1)
+scaleY a = scale $ V.fromList [0,a,0] 
 
 scaleZ :: Scaleable a => Double -> a -> a
-scaleZ a = scale (1, 1, a)
+scaleZ a = scale $ V.fromList [0,0,a] 
 
 class Colorable a where
-  color :: Color -> a -> a
+  color :: AlphaColour Double -> a -> a
 
 class Setable a where
   union        :: a -> a -> a

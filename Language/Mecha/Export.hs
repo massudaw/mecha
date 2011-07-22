@@ -7,7 +7,15 @@ module Language.Mecha.Export
 import Text.Printf
 
 import Language.Mecha.Solid
+import Data.Colour
+import Data.Colour.RGBSpace
+import Data.Colour.SRGB
+import qualified Data.Vector as V 
 
+colorToVector:: AlphaColour Double -> ( Double, Double, Double, Double)
+colorToVector color = ( channelRed rgbChannel, channelGreen rgbChannel, channelBlue rgbChannel, alphaChannel color) 
+	where rgbChannel = toSRGB$ color `over` black 
+	
 -- Generates a POV-Ray model.
 povray :: Solid -> String
 povray a = unlines
@@ -17,13 +25,12 @@ povray a = unlines
   , ""
   ]
   where
-
   solid :: Solid -> String
   solid a = case a of
-    Primitive t (r, g, b, o) a -> printf "%s { %s\n%s%s}\n" a1 a2 (indent $ concatMap transform t) (indent color)
+    Primitive t alphacolor a -> printf "%s { %s\n%s%s}\n" a1 a2 (indent $ concatMap transform t) (indent$ color $colorToVector alphacolor)
       where
-      color :: String
-      color = printf "pigment { rgbt <%f, %f, %f, %f> }\n" r g b (1 - o)
+      color  ::(Double,Double,Double,Double)-> String
+      color (r , g , b, a)= printf "pigment { rgbt <%f, %f, %f, %f> }\n"  r g b (1-a)
       a1 :: String
       a2 :: String
       (a1, a2) = case a of
@@ -41,11 +48,10 @@ povray a = unlines
     Union        a b   -> printf "merge        {\n%s%s}\n" (indent $ solid a) (indent $ solid b)
     Intersection a b   -> printf "intersection {\n%s%s}\n" (indent $ solid a) (indent $ solid b)
     Difference   a b   -> printf "difference   {\n%s%s}\n" (indent $ solid a) (indent $ solid b)
-
   transform :: Transform -> String
   transform a = case a of
-    Scale (x, y, z) -> printf "scale <%f, %f, %f>\n" x z y
-    Move  (x, y, z) -> printf "translate <%f, %f, %f>\n" x z y
+    Scale vec -> printf "scale <%f, %f, %f>\n" (vec V.! 0) (vec V.! 1 ) (vec V.! 2) 
+    Move  vec -> printf "translate <%f, %f, %f>\n" (vec V.! 0) (vec V.! 1 ) (vec V.! 3) 
     RotateX a       -> printf "rotate <%f, 0, 0>\n" (-a * 180 / pi)
     RotateY a       -> printf "rotate <0, 0, %f>\n" (-a * 180 / pi)
     RotateZ a       -> printf "rotate <0, %f, 0>\n" (-a * 180 / pi)
@@ -65,13 +71,33 @@ openSCAD a = unlines
     Union        a b   -> printf "union()        {\n%s%s}\n" (indent $ solid a) (indent $ solid b)
     Intersection a b   -> printf "intersection() {\n%s%s}\n" (indent $ solid a) (indent $ solid b)
     Difference   a b   -> printf "difference()   {\n%s%s}\n" (indent $ solid a) (indent $ solid b)
-    Primitive t (r, g, b, o) p -> printf "color([%f, %f, %f, %f]) %s\n" r g b o $ transform $ reverse t
+    Extruded tr co pr pl ->(color $colorToVector co)$ (transform $ reverse tr) ++  ( projection pr) ++  ( plane pl)
+      where
+      projection :: Projection -> String 
+      projection a = case a of
+	Extrude length-> printf "linear_extrude (height=%f,center= true, convexity=10,twist = -fanrot)" length	
+      plane a = case a of
+        Primitive2D t alphaColor p -> (color $ colorToVector alphaColor)$(( transform $ reverse t) ++ primitive2D p)
+      transform :: [Transform] -> String
+      color ( r, g ,b, a) =printf "color([%f, %f, %f, %f]) %s\n" r g b a 	
+      transform a = case a of
+        [] ->  printf "\n " 
+        Scale vec : rest -> printf "scale ([%f, %f, %f]) %s"     (vec V.! 0)(vec V.! 1)(vec V.! 2)$ transform rest
+        Move  vec : rest -> printf "translate ([%f, %f, %f]) %s" (vec V.! 0)(vec V.! 1)(vec V.! 2)$ transform rest
+        RotateX a       : rest -> printf "rotate (%f, [1, 0, 0]) %s"   (a * 180 / pi) $ transform rest
+        RotateY a       : rest -> printf "rotate (%f, [0, 1, 0]) %s"   (a * 180 / pi) $ transform rest
+        RotateZ a       : rest -> printf "rotate (%f, [0, 0, 1]) %s"   (a * 180 / pi) $ transform rest
+      primitive2D :: Primitive2D -> String
+      primitive2D a = case a of
+         Circle r     -> printf "circle(r = %f, $fn = 100);\n" r
+    Primitive t alphaColor p -> (color $colorToVector alphaColor) $ transform $ reverse t
       where
       transform :: [Transform] -> String
+      color ( r, g ,b, a) =printf "color([%f, %f, %f, %f]) %s\n" r g b a 	
       transform a = case a of
         [] -> primitive p
-        Scale (x, y, z) : rest -> printf "scale ([%f, %f, %f]) %s"     x y z          $ transform rest
-        Move  (x, y, z) : rest -> printf "translate ([%f, %f, %f]) %s" x y z          $ transform rest
+        Scale vec : rest -> printf "scale ([%f, %f, %f]) %s"     (vec V.! 0)(vec V.! 1)(vec V.! 2)$ transform rest
+        Move  vec : rest -> printf "translate ([%f, %f, %f]) %s" (vec V.! 0)(vec V.! 1)(vec V.! 2)$ transform rest
         RotateX a       : rest -> printf "rotate (%f, [1, 0, 0]) %s"   (a * 180 / pi) $ transform rest
         RotateY a       : rest -> printf "rotate (%f, [0, 1, 0]) %s"   (a * 180 / pi) $ transform rest
         RotateZ a       : rest -> printf "rotate (%f, [0, 0, 1]) %s"   (a * 180 / pi) $ transform rest

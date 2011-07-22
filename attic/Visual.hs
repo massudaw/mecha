@@ -4,10 +4,9 @@ module Language.Mecha.Visual
 
 import Graphics.UI.GLUT
 
-import Language.Mecha.Assembly
 
-visual :: Asm -> IO ()
-visual _ = do
+visual ::  IO ()
+visual = do
   initialize "Mecha" []
   initialWindowSize   $= Size 800 600
   initialDisplayMode  $= [RGBAMode, WithDepthBuffer, DoubleBuffered]

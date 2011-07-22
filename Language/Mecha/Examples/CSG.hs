@@ -2,18 +2,13 @@
 module Language.Mecha.Examples.CSG (csg) where
 
 import Language.Mecha
-
+import Data.Colour
+import qualified Data.Vector as V
 -- | A CSG widget.
 csg :: Solid
 csg = unions
-  [ move ( 0, 0, 0) $ color (0.2, 0.2, 1.0, 1) $ difference sphereCube cyl3
-  , move (-4, 0, 0) $ color (0.8, 0.0, 0.0, 1) $ sphereCube
-  , move (-8, 0, 0) $ color (0.8, 0.0, 0.0, 1) $ sphere'
-  , move (-4, 4, 0) $ color (0.8, 0.0, 0.0, 1) $ cube'
-  , move ( 0, 4, 0) $ color (0.0, 0.8, 0.0, 1) $ cyl3
-  , move ( 0, 8, 0) $ color (0.0, 0.8, 0.0, 1) $ cyl
-  , move (-4, 8, 0) $ color (0.0, 0.8, 0.0, 1) $ rotateX (pi/2) cyl
-  , move ( 4, 8, 0) $ color (0.0, 0.8, 0.0, 1) $ rotateY (pi/2) cyl
+  [ move (V.fromList [ 0, 0, 0]) $ difference sphereCube cyl3
+  , move (V.fromList [ 0, 4, 0]) $ cyl3
   ]
 
 sphere' = sphere 2
