@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 -- | Generate profiles and cross sections of solid models.
 module Language.Mecha.Profile
   ( profile
@@ -9,6 +10,8 @@ module Language.Mecha.Profile
 import System.Directory
 import System.Process
 
+import Data.Monoid
+import qualified Data.Text.IO as T
 import Language.Mecha.Export
 import Language.Mecha.Solid (Solid)
 
@@ -16,13 +19,14 @@ import Language.Mecha.Solid (Solid)
 profile :: Solid -> IO [Line]
 profile = cut False
 
+
 -- | Capture cross section at x-y plane and extract line data form OpenSCAD.
 crossSection :: Solid -> IO [Line]
 crossSection = cut True
 
 cut :: Bool -> Solid -> IO [Line]
 cut cut a = do
-  writeFile scad $ "projection(cut=" ++ (if cut then "true" else "false") ++ ")\n" ++ openSCAD a
+  T.writeFile scad $ "projection(cut=" <>  (if cut then "true" else "false") <>  ")\n" <> openSCAD a
   readProcess "OpenSCAD" ["-o", dxf, scad] ""
   f <- readFile dxf
   if length f < 0 then undefined else return ()

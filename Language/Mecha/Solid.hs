@@ -11,6 +11,7 @@ module Language.Mecha.Solid
   , tube
   , radial
   , torus
+  , text
   ) where
 
 import Language.Mecha.Types
@@ -27,6 +28,7 @@ data Primitive
   | Cone   Double Double Double  -- ^ Bottom diameter, top diameter, height.
   | Box (Double, Double) (Double, Double) (Double, Double)  -- ^ (x min, x max) (y min, ymax) (z min, z max).
   | Torus  Double Double         -- ^ Major diameter, minor diameter.
+  | Text  String
   deriving Eq
 
 data Transform
@@ -71,6 +73,9 @@ primitive = Primitive [] (0.5, 0.5, 0.5, 1)
 -- | A sphere with diameter, centered at origin.
 sphere :: Double -> Solid
 sphere = primitive . Sphere
+
+text :: String -> Solid
+text   = primitive . Text
 
 -- | A cube with edge length, centered at origin.
 cube :: Double -> Solid

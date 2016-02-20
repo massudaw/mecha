@@ -1,5 +1,5 @@
 name:    mecha
-version: 0.1.2
+version: 0.1.3
 
 category: Language
 
@@ -25,7 +25,8 @@ library
     build-depends:
         base,
         directory,
-        process
+        process,
+        text == 1.2.2.0
 
     exposed-modules:
         Language.Mecha
@@ -43,7 +44,9 @@ executable mecha-examples
     build-depends:
         base,
         process,
-        mecha
+        mecha,
+        text
+
 
  
 source-repository head
