@@ -2,6 +2,7 @@ module Language.Mecha.Solid
   ( Solid     (..)
   , Primitive (..)
   , Transform (..)
+  , Polygon (..)
   , sphere
   , cone
   , box
@@ -12,9 +13,13 @@ module Language.Mecha.Solid
   , radial
   , torus
   , text
+  , polygon
+  , polyhedra
+  , extrude
   ) where
 
 import Language.Mecha.Types
+
 
 data Solid
   = Primitive [Transform] Color Primitive
@@ -23,11 +28,17 @@ data Solid
   | Difference   Solid Solid
   deriving Eq
 
+data Polygon
+  = Polygon [[Double]] [[Int]]
+  deriving Eq
+
 data Primitive
   = Sphere Double                -- ^ Diameter.
   | Cone   Double Double Double  -- ^ Bottom diameter, top diameter, height.
   | Box (Double, Double) (Double, Double) (Double, Double)  -- ^ (x min, x max) (y min, ymax) (z min, z max).
   | Torus  Double Double         -- ^ Major diameter, minor diameter.
+  | Extrusion Polygon Double
+  | Polyhedra [[Double]] [[Int]]
   | Text  String
   deriving Eq
 
@@ -99,6 +110,15 @@ cylinder' d h = moveZ (- h / 2) $ cylinder d h
 -- | A hollow cylinder with base at the origin, given outer diameter, inner diamter, and height.
 tube :: Double -> Double -> Double -> Solid
 tube od id h = difference (cylinder od h) (moveZ (-h) $ cylinder id (4 * h))
+
+polygon :: [[Double]] -> [[Int]]-> Polygon
+polygon = Polygon
+
+polyhedra :: [[Double]] -> [[Int]]-> Solid
+polyhedra p = primitive . Polyhedra p
+
+extrude :: Polygon -> Double -> Solid
+extrude p = primitive . Extrusion p
 
 -- | A box with ranges or X, Y, and Z positions.
 box :: (Double, Double) -> (Double, Double) -> (Double, Double) -> Solid
