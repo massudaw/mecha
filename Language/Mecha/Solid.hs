@@ -45,6 +45,8 @@ data Primitive
 data Transform
   = Scale (Vector)
   | Move  (Vector)
+  | HomTransform Matrix
+  | Rotate Vector
   | RotateX Double
   | RotateY Double
   | RotateZ Double
@@ -59,6 +61,8 @@ transform t a = case a of
 
 instance Moveable Solid where
   move a    = transform $ Move a
+  affine a    = transform $ HomTransform a
+  rotate a = transform $ Rotate a
   rotateX a = transform $ RotateX a
   rotateY a = transform $ RotateY a
   rotateZ a = transform $ RotateZ a
@@ -80,6 +84,7 @@ instance Colorable Solid where
 
 primitive :: Primitive -> Solid
 primitive = Primitive [] (0.5, 0.5, 0.5, 1)
+
 
 -- | A sphere with diameter, centered at origin.
 sphere :: Double -> Solid

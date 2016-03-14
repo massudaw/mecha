@@ -77,6 +77,8 @@ openSCAD a = T.unlines
         [] -> printf "color([%f, %f, %f, %f]) %s\n" r g b o $ primitive p
         Scale (x, y, z) : rest -> printf "scale ([%f, %f, %f]) %s"     x y z          $ transform rest
         Move  (x, y, z) : rest -> printf "translate ([%f, %f, %f]) %s" x y z          $ transform rest
+        HomTransform m  : rest -> "multmatrix (" <> show m <> ") "  <>   transform rest
+        Rotate (x,y,z)  : rest -> printf "rotate ([%f, %f,%f]) %s "   (x * 180 / pi) (y * 180 / pi)(z * 180 / pi)$ transform rest
         RotateX a       : rest -> printf "rotate (%f, [1, 0, 0]) %s"   (a * 180 / pi) $ transform rest
         RotateY a       : rest -> printf "rotate (%f, [0, 1, 0]) %s"   (a * 180 / pi) $ transform rest
         RotateZ a       : rest -> printf "rotate (%f, [0, 0, 1]) %s"   (a * 180 / pi) $ transform rest

@@ -1,5 +1,5 @@
 module Language.Mecha.Types
-  ( Vector, Vertex, Normal, Color
+  ( Vector, Matrix,Vertex, Normal, Color
   , Moveable  (..)
   , Scaleable (..)
   , Colorable (..)
@@ -15,12 +15,15 @@ module Language.Mecha.Types
   ) where
 
 type Vector = (Double, Double, Double)
+type Matrix = [[Double]]
 type Vertex = Vector
 type Normal = Vector
 type Color  = (Double, Double, Double, Double)
 
 class Moveable a where
   move    :: Vector -> a -> a
+  affine :: Matrix -> a -> a
+  rotate :: Vector -> a -> a
   rotateX :: Double -> a -> a
   rotateY :: Double -> a -> a
   rotateZ :: Double -> a -> a
