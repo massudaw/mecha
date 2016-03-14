@@ -26,6 +26,7 @@ data Solid
   | Union        Solid Solid
   | Intersection Solid Solid
   | Difference   Solid Solid
+  | Statements [Solid]
   deriving Eq
 
 data Polygon

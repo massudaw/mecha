@@ -67,6 +67,7 @@ openSCAD a = T.unlines
 
   solid :: Solid -> Text
   solid a = case a of
+    Statements   a   -> T.intercalate "\n" (solid <$> a)
     Union        a b   -> "union()        {\n" <> solid a <> solid b <> "}\n"
     Intersection a b   -> "intersection() {\n" <> solid a <> solid b <> "}\n"
     Difference   a b   -> "difference()   {\n" <> solid a <> solid b <> "}\n"
