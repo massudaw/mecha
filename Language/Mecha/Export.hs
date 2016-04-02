@@ -85,7 +85,10 @@ openSCAD a = T.unlines
         RotateZ a       : rest -> printf "rotate (%f, [0, 0, 1]) %s"   (a * 180 / pi) $ transform rest
 
       polygon :: Polygon -> String
-      polygon (Polygon n l) = "polygon(points = " <> show (take 2 <$> n) <> ",paths = "  <> show l <> ");\n"
+      polygon a = case a of
+        Polygon n l ->  "polygon(points = " <> show (take 2 <$> n) <> ",paths = "  <> show l <> ");\n"
+        Circle r ->  "circle(r= " <> show r <> ");\n"
+        Square r ->  "square(size = " <> show r <> ");\n"
       primitive :: Primitive -> String
       primitive a = case a of
         Extrusion p e    -> printf "linear_extrude(height = %f)" e  <> polygon p

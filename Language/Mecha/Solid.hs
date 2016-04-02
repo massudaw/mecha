@@ -31,6 +31,8 @@ data Solid
 
 data Polygon
   = Polygon [[Double]] [[Int]]
+  | Circle Double
+  | Square Double
   deriving Eq
 
 data Primitive
